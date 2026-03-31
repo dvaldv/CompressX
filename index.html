@@ -1,0 +1,1467 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CompressX — Professional Media Optimizer</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/browser-image-compression/2.0.2/browser-image-compression.min.js"></script>
+<script src="https://unpkg.com/mp4-muxer@5.1.3/build/mp4-muxer.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#f8f9fb;--surface:#ffffff;--surface2:#f1f4f8;
+  --border:#e4e8ef;--border2:#d1d9e4;
+  --text:#0d1117;--text2:#4a5568;--text3:#8896aa;
+  --accent:#1a56db;--accent-l:#eff4ff;--accent-b:#c7d9ff;
+  --green:#0f9b6a;--green-l:#edfaf4;--green-b:#a7f0d6;
+  --amber:#d97706;--amber-l:#fffbeb;
+  --red:#dc2626;--red-l:#fef2f2;
+  --wa:#25d366;--wa-l:#e8fdf2;
+  --radius-sm:8px;--radius:12px;--radius-lg:18px;
+  --shadow-sm:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --shadow:0 4px 16px rgba(0,0,0,.08),0 1px 4px rgba(0,0,0,.04);
+}
+
+html{scroll-behavior:smooth}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;-webkit-font-smoothing:antialiased}
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px}
+
+/* NAV */
+nav{
+  position:sticky;top:0;z-index:200;
+  background:rgba(248,249,251,.92);backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+  padding:0 1.5rem;height:56px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.logo{display:flex;align-items:center;gap:8px;text-decoration:none}
+.logo-icon{width:30px;height:30px;border-radius:8px;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0}
+.logo-icon svg{width:15px;height:15px}
+.logo-text{font-size:1rem;font-weight:800;color:var(--text);letter-spacing:-.4px}
+.logo-text span{color:var(--accent)}
+.badge-free{padding:4px 12px;border-radius:99px;font-size:.72rem;font-weight:700;letter-spacing:.3px;background:var(--accent-l);color:var(--accent);border:1px solid var(--accent-b);text-transform:uppercase}
+
+/* HERO */
+.hero{max-width:860px;margin:0 auto;padding:48px 1.5rem 36px;text-align:center}
+.hero h1{font-size:clamp(1.8rem,5vw,3rem);font-weight:800;line-height:1.12;letter-spacing:-1.5px;color:var(--text);margin-bottom:14px}
+.hero h1 em{font-style:normal;color:var(--accent)}
+.hero p{font-size:.95rem;color:var(--text2);max-width:480px;margin:0 auto 32px;line-height:1.7}
+.hero-stats{display:inline-flex;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:var(--shadow-sm);overflow:hidden}
+.stat{padding:14px 24px;text-align:center}
+.stat+.stat{border-left:1px solid var(--border)}
+.stat-n{font-size:1.3rem;font-weight:800;color:var(--text);letter-spacing:-.5px}
+.stat-n span{color:var(--accent)}
+.stat-l{font-size:.68rem;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+
+/* MAIN */
+.main{max-width:960px;margin:0 auto;padding:0 1.5rem 80px}
+
+/* TAB BAR */
+.tab-bar{
+  display:flex;gap:3px;
+  background:var(--surface);border:1px solid var(--border);
+  border-radius:var(--radius-lg);padding:4px;
+  margin-bottom:20px;box-shadow:var(--shadow-sm);
+  overflow-x:auto;-webkit-overflow-scrolling:touch;
+}
+.tab-btn{
+  flex:1;min-width:0;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;
+  padding:8px 6px;border:none;border-radius:10px;
+  background:transparent;color:var(--text3);
+  font-family:'Plus Jakarta Sans',sans-serif;
+  font-size:.65rem;font-weight:700;letter-spacing:.1px;
+  cursor:pointer;transition:all .2s;
+  -webkit-tap-highlight-color:transparent;
+  touch-action:manipulation;
+}
+.tab-btn svg{width:18px;height:18px;flex-shrink:0;opacity:.6;transition:opacity .2s}
+.tab-btn:hover:not(.active){background:var(--surface2);color:var(--text2)}
+.tab-btn.active{background:var(--accent);color:#fff;box-shadow:0 2px 10px rgba(26,86,219,.3)}
+.tab-btn.active svg{opacity:1}
+.tab-btn-wa.active{background:linear-gradient(135deg,#25d366,#128c4e)!important;box-shadow:0 2px 10px rgba(37,211,102,.35)!important}
+
+/* PANEL */
+.tab-panel{display:none}
+.tab-panel.active{display:flex;flex-direction:column;gap:16px;animation:fadeUp .2s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+
+/* CARD */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:20px;box-shadow:var(--shadow-sm)}
+.card-header{display:flex;align-items:center;gap:10px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.card-icon{width:32px;height:32px;border-radius:8px;background:var(--accent-l);display:flex;align-items:center;justify-content:center;color:var(--accent);flex-shrink:0}
+.card-icon svg{width:16px;height:16px}
+.card-title{font-size:.88rem;font-weight:700;color:var(--text);letter-spacing:-.2px}
+.card-sub{font-size:.73rem;color:var(--text3);margin-top:1px}
+
+/* DROPZONE */
+.dropzone{border:2px dashed var(--border2);border-radius:var(--radius);padding:36px 20px;text-align:center;cursor:pointer;transition:all .2s;position:relative;background:var(--bg)}
+.dropzone:hover,.dropzone.drag-over{border-color:var(--accent);background:var(--accent-l)}
+.dropzone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.dz-icon{width:44px;height:44px;border-radius:12px;background:var(--surface2);display:flex;align-items:center;justify-content:center;margin:0 auto 10px;color:var(--text3);transition:all .2s}
+.dz-icon svg{width:22px;height:22px}
+.dropzone:hover .dz-icon,.dropzone.drag-over .dz-icon{background:var(--accent-l);color:var(--accent)}
+.dz-title{font-size:.85rem;font-weight:700;color:var(--text);margin-bottom:4px}
+.dz-sub{font-size:.74rem;color:var(--text3)}
+.dz-sub b{color:var(--accent)}
+.dz-badges{display:flex;gap:4px;justify-content:center;flex-wrap:wrap;margin-top:12px}
+.dz-badge{padding:2px 8px;border-radius:5px;font-size:.65rem;font-weight:700;background:var(--surface);border:1px solid var(--border);color:var(--text3);text-transform:uppercase;font-family:'JetBrains Mono',monospace}
+.dropzone.file-selected{display:none}
+
+/* FILE PREVIEW */
+.file-preview{display:none;align-items:center;gap:12px;background:var(--accent-l);border:2px solid var(--accent-b);border-radius:var(--radius);padding:14px 16px;margin-top:12px}
+.file-preview.show{display:flex}
+.fp-icon{width:38px;height:38px;border-radius:9px;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;flex-shrink:0}
+.fp-icon svg{width:17px;height:17px}
+.fp-info{flex:1;min-width:0}
+.fp-name{font-size:.83rem;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.fp-size{font-size:.72rem;color:var(--text3);margin-top:2px}
+.fp-btn{display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:7px;background:var(--surface);border:1px solid var(--border);font-size:.73rem;font-weight:600;color:var(--text2);cursor:pointer;transition:all .18s;flex-shrink:0;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.fp-btn svg{width:12px;height:12px}
+.fp-btn:hover{background:var(--border);color:var(--text)}
+
+/* SETTINGS */
+.settings-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
+.field label{display:flex;align-items:center;gap:5px;font-size:.71rem;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.4px;margin-bottom:6px}
+.field label svg{width:11px;height:11px;color:var(--text3)}
+.field select,.field input[type="number"]{width:100%;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);padding:8px 10px;font-size:.83rem;font-family:'Plus Jakarta Sans',sans-serif;font-weight:500;outline:none;transition:border-color .18s,box-shadow .18s;appearance:none}
+.field select:focus,.field input[type="number"]:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(26,86,219,.1)}
+.field select{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238896aa' stroke-width='2.5'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center;padding-right:28px}
+.slider-wrap{position:relative;padding-top:22px}
+.slider-val{position:absolute;top:0;right:0;font-size:.73rem;font-weight:700;color:var(--accent);font-family:'JetBrains Mono',monospace}
+input[type="range"]{width:100%;appearance:none;height:5px;border-radius:99px;background:var(--border);outline:none;cursor:pointer;accent-color:var(--accent)}
+input[type="range"]::-webkit-slider-thumb{appearance:none;width:17px;height:17px;border-radius:50%;background:var(--accent);border:2px solid #fff;box-shadow:0 1px 5px rgba(26,86,219,.3);cursor:pointer}
+
+/* BUTTONS */
+.action-row{display:flex;gap:8px;align-items:center;margin-top:4px}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:10px 18px;border-radius:var(--radius-sm);font-family:'Plus Jakarta Sans',sans-serif;font-size:.82rem;font-weight:700;cursor:pointer;transition:all .18s;border:none;white-space:nowrap;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.btn svg{width:14px;height:14px}
+.btn-primary{background:var(--accent);color:#fff;box-shadow:0 2px 10px rgba(26,86,219,.25)}
+.btn-primary:hover{background:#1648c8;transform:translateY(-1px)}
+.btn-primary:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}
+.btn-ghost{background:var(--surface2);color:var(--text2);border:1px solid var(--border)}
+.btn-ghost:hover{background:var(--border);color:var(--text)}
+.btn-sm{padding:7px 13px;font-size:.75rem}
+.btn-wa{background:#25d366;color:#fff;box-shadow:0 2px 8px rgba(37,211,102,.25)}
+.btn-wa:hover{background:#20b558;transform:translateY(-1px)}
+.btn-dl{background:var(--text);color:#fff}
+.btn-dl:hover{background:#1a2233;transform:translateY(-1px)}
+
+/* PROGRESS */
+.progress-box{display:none;margin-top:14px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px}
+.progress-box.show{display:block}
+.progress-header{display:flex;justify-content:space-between;margin-bottom:7px}
+.progress-label{font-size:.76rem;font-weight:600;color:var(--text2)}
+.progress-pct{font-size:.76rem;font-weight:700;color:var(--accent);font-family:'JetBrains Mono',monospace}
+.progress-track{height:6px;background:var(--border);border-radius:99px;overflow:hidden}
+.progress-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--accent),#5b8def);transition:width .3s ease}
+
+/* NOTE */
+.note{display:flex;gap:8px;align-items:flex-start;padding:10px 12px;border-radius:var(--radius-sm);font-size:.76rem;line-height:1.55;font-weight:500}
+.note svg{width:13px;height:13px;flex-shrink:0;margin-top:1px}
+.note-warn{background:var(--amber-l);border:1px solid #fde68a;color:#92400e}
+.note-info{background:var(--accent-l);border:1px solid var(--accent-b);color:var(--accent)}
+
+/* ERROR */
+.err-msg{display:none;background:var(--red-l);border:1px solid #fecaca;border-radius:var(--radius-sm);padding:10px 12px;color:#991b1b;font-size:.78rem;font-weight:500;margin-top:10px;align-items:center;gap:7px}
+.err-msg svg{width:13px;height:13px;flex-shrink:0}
+.err-msg.show{display:flex}
+
+/* RESULTS */
+.results-wrap{display:none}
+.results-wrap.show{display:flex;flex-direction:column;gap:10px;animation:fadeUp .2s ease}
+.summary-card{background:var(--green-l);border:1px solid var(--green-b);border-radius:var(--radius-lg);padding:16px 18px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.summary-stats{display:flex;gap:20px;flex-wrap:wrap}
+.sum-item .s-label{font-size:.68rem;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px}
+.sum-item .s-val{font-size:1rem;font-weight:800;color:var(--text);letter-spacing:-.3px}
+.sum-item .s-val small{font-size:.72rem;font-weight:600;color:var(--text3);margin-left:3px}
+.summary-actions{display:flex;gap:7px;flex-wrap:wrap}
+.result-list{display:flex;flex-direction:column;gap:7px}
+.result-item{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:10px 14px;display:flex;align-items:center;gap:12px;transition:box-shadow .18s}
+.result-item:hover{box-shadow:var(--shadow)}
+.result-thumb{width:44px;height:44px;border-radius:7px;background:var(--surface2);flex-shrink:0;overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--text3)}
+.result-thumb img{width:100%;height:100%;object-fit:cover}
+.result-thumb svg{width:18px;height:18px}
+.result-info{flex:1;min-width:0}
+.result-name{font-size:.8rem;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px}
+.result-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.meta-tag{font-size:.7rem;font-weight:500;color:var(--text3)}
+.meta-arrow{color:var(--border2)}
+.saving-pill{padding:2px 7px;border-radius:99px;font-size:.67rem;font-weight:800;font-family:'JetBrains Mono',monospace}
+.saving-good{background:var(--green-l);color:var(--green);border:1px solid var(--green-b)}
+.saving-warn{background:var(--amber-l);color:var(--amber);border:1px solid #fde68a}
+.result-actions{display:flex;gap:5px;flex-shrink:0}
+.btn-icon{width:32px;height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);background:var(--surface2);color:var(--text2);cursor:pointer;transition:all .18s;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.btn-icon svg{width:14px;height:14px}
+.btn-icon:hover{background:var(--surface);border-color:var(--border2);color:var(--text)}
+.btn-icon.wa{background:var(--wa-l);border-color:#a7f3d0;color:var(--wa)}
+.btn-icon.wa:hover{background:#d1fae5}
+
+/* WA STATUS PANEL */
+.wa-info-banner{display:flex;align-items:flex-start;gap:12px;background:linear-gradient(135deg,#e8fdf2,#d1fae5);border:1px solid #a7f3d0;border-radius:var(--radius-lg);padding:16px 18px}
+.wa-banner-icon{width:40px;height:40px;border-radius:10px;flex-shrink:0;background:#25d366;color:#fff;display:flex;align-items:center;justify-content:center}
+.wa-banner-icon svg{width:20px;height:20px}
+.wa-banner-title{font-size:.88rem;font-weight:800;color:#064e3b;margin-bottom:3px}
+.wa-banner-desc{font-size:.75rem;color:#065f46;line-height:1.5}
+.wa-banner-desc b{color:#047857}
+.wa-mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.wa-mode-btn{display:flex;flex-direction:column;align-items:center;gap:6px;padding:16px 10px;border-radius:var(--radius);border:2px solid var(--border);background:var(--bg);cursor:pointer;transition:all .2s;text-align:center;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+.wa-mode-btn:hover{border-color:#a7f3d0;background:#f0fdf4}
+.wa-mode-btn.active{border-color:#25d366;background:#f0fdf4;box-shadow:0 0 0 3px rgba(37,211,102,.12)}
+.wa-mode-btn svg{width:20px;height:20px;color:var(--text3);transition:color .2s}
+.wa-mode-btn.active svg{color:#25d366}
+.wa-mode-label{font-size:.85rem;font-weight:800;color:var(--text)}
+.wa-mode-desc{font-size:.68rem;color:var(--text3);font-weight:500}
+.wa-mode-btn.active .wa-mode-label{color:#065f46}
+.wa-params{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px}
+.wa-param-item{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px}
+.wa-param-label{font-size:.65rem;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px}
+.wa-param-val{font-size:.88rem;font-weight:800;color:#25d366;font-family:'JetBrains Mono',monospace}
+
+/* FEATURES */
+.features{max-width:960px;margin:0 auto;padding:0 1.5rem 60px}
+.section-eyebrow{font-size:.7rem;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.section-title{font-size:1.4rem;font-weight:800;letter-spacing:-.5px;margin-bottom:22px;color:var(--text)}
+.feat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(175px,1fr));gap:10px}
+.feat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:18px;transition:all .2s}
+.feat-card:hover{border-color:var(--accent-b);box-shadow:var(--shadow);transform:translateY(-2px)}
+.feat-icon{width:32px;height:32px;border-radius:8px;background:var(--accent-l);color:var(--accent);display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+.feat-icon svg{width:16px;height:16px}
+.feat-name{font-size:.83rem;font-weight:700;margin-bottom:4px}
+.feat-desc{font-size:.73rem;color:var(--text3);line-height:1.5}
+
+/* FOOTER */
+footer{border-top:1px solid var(--border);padding:20px 1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px}
+.footer-brand{display:flex;align-items:center;gap:7px;font-size:.8rem;font-weight:700;color:var(--text)}
+.footer-brand svg{width:12px;height:12px}
+.footer-note{font-size:.73rem;color:var(--text3);display:flex;align-items:center;gap:5px}
+.footer-note svg{width:12px;height:12px}
+
+/* RESPONSIVE */
+@media(max-width:680px){
+  nav{padding:0 1rem}
+  .hero{padding:32px 1rem 24px}
+  .main,.features{padding-left:1rem;padding-right:1rem}
+  .hero-stats{flex-direction:column;width:100%}
+  .stat+.stat{border-left:none;border-top:1px solid var(--border)}
+  .stat{padding:10px 18px}
+  .settings-grid{grid-template-columns:1fr 1fr}
+  .summary-card{flex-direction:column}
+  .result-item{flex-wrap:wrap}
+  footer{flex-direction:column;text-align:center}
+}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="logo" href="#">
+    <div class="logo-icon">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    </div>
+    <span class="logo-text">Compress<span>X</span></span>
+  </a>
+  <span class="badge-free">✦ Gratis</span>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <h1>Optimalkan <em>Foto & Video</em><br/>Secara Profesional</h1>
+  <p>Kompress, resize, dan konversi file media langsung di browser. Cepat, aman, tanpa upload ke server.</p>
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-n">90<span>%</span></div>
+      <div class="stat-l">Maks. Hemat</div>
+    </div>
+    <div class="stat">
+      <div class="stat-n">5</div>
+      <div class="stat-l">Tools Tersedia</div>
+    </div>
+    <div class="stat">
+      <div class="stat-n">0</div>
+      <div class="stat-l">Upload Server</div>
+    </div>
+  </div>
+</section>
+
+<!-- TOOLS -->
+<main class="main" id="tools">
+
+  <!-- TAB BAR -->
+  <div class="tab-bar" role="tablist">
+    <button class="tab-btn active" onclick="switchTab('photo',this)" role="tab">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      <span>Foto</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('video',this)" role="tab">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4V8z"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>
+      <span>Video</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('resize',this)" role="tab">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+      <span>Resize</span>
+    </button>
+    <button class="tab-btn" onclick="switchTab('convert',this)" role="tab">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+      <span>Convert</span>
+    </button>
+    <button class="tab-btn tab-btn-wa" onclick="switchTab('wastatus',this)" role="tab">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      <span>WA Status</span>
+    </button>
+  </div>
+
+  <!-- PANEL: FOTO -->
+  <div class="tab-panel active" id="tab-photo">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        </div>
+        <div>
+          <div class="card-title">Upload Foto</div>
+          <div class="card-sub">Pilih 1 file — proses lokal, data tidak dikirim</div>
+        </div>
+      </div>
+      <div class="dropzone" id="photoDz" ondrop="handleDrop(event,'photo')" ondragover="doDragOver(event,'photoDz')" ondragleave="doDragLeave('photoDz')">
+        <input type="file" accept="image/*" onchange="handleFiles('photo',this.files)"/>
+        <div class="dz-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        </div>
+        <div class="dz-title">Seret foto ke sini</div>
+        <div class="dz-sub">atau <b>klik untuk menelusuri</b></div>
+        <div class="dz-badges"><span class="dz-badge">JPG</span><span class="dz-badge">PNG</span><span class="dz-badge">WEBP</span><span class="dz-badge">AVIF</span><span class="dz-badge">BMP</span></div>
+      </div>
+      <div class="file-preview" id="photoFilePreview">
+        <div class="fp-icon" style="background:var(--accent)">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        </div>
+        <div class="fp-info">
+          <div class="fp-name" id="photoFileName">—</div>
+          <div class="fp-size" id="photoFileSize">—</div>
+        </div>
+        <button class="fp-btn" onclick="changeFile('photo')">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Ganti
+        </button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+        </div>
+        <div>
+          <div class="card-title">Pengaturan Kompresi</div>
+          <div class="card-sub">Sesuaikan kualitas dan target ukuran output</div>
+        </div>
+      </div>
+      <div class="settings-grid">
+        <div class="field">
+          <label>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48 2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48 2.83-2.83"/></svg>
+            Kualitas Output
+          </label>
+          <div class="slider-wrap">
+            <span class="slider-val" id="photoQualVal">80%</span>
+            <input type="range" min="10" max="100" value="80" id="photoQuality" oninput="document.getElementById('photoQualVal').textContent=this.value+'%'"/>
+          </div>
+        </div>
+        <div class="field">
+          <label>Max Ukuran (KB)</label>
+          <input type="number" id="photoMaxSize" value="500" min="50"/>
+        </div>
+        <div class="field">
+          <label>Max Lebar (px)</label>
+          <input type="number" id="photoMaxWidth" value="1920" min="100"/>
+        </div>
+        <div class="field">
+          <label>Format Output</label>
+          <select id="photoFormat">
+            <option value="original">Sama dengan input</option>
+            <option value="image/jpeg">JPEG</option>
+            <option value="image/png">PNG</option>
+            <option value="image/webp">WEBP</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-top:18px">
+        <div class="action-row">
+          <button class="btn btn-primary" id="photoBtn" onclick="processPhotos()" disabled>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Kompress Sekarang
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="resetAll('photo')">Reset</button>
+        </div>
+        <div class="progress-box" id="photoProgress">
+          <div class="progress-header"><span class="progress-label" id="photoProgressLabel">Memproses...</span><span class="progress-pct" id="photoProgressPct">0%</span></div>
+          <div class="progress-track"><div class="progress-fill" id="photoProgressFill" style="width:0%"></div></div>
+        </div>
+        <div class="err-msg" id="photoError"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span></span></div>
+      </div>
+    </div>
+    <div class="results-wrap" id="photoResults"><div class="summary-card" id="photoSummary"></div><div class="result-list" id="photoResultsList"></div></div>
+  </div>
+
+  <!-- PANEL: VIDEO -->
+  <div class="tab-panel" id="tab-video">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4V8z"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>
+        </div>
+        <div>
+          <div class="card-title">Upload Video</div>
+          <div class="card-sub">Kompresi video langsung di browser menggunakan MediaRecorder API</div>
+        </div>
+      </div>
+      <div class="dropzone" id="videoDz" ondrop="handleDrop(event,'video')" ondragover="doDragOver(event,'videoDz')" ondragleave="doDragLeave('videoDz')">
+        <input type="file" accept="video/*" onchange="handleFiles('video',this.files)"/>
+        <div class="dz-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4V8z"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>
+        </div>
+        <div class="dz-title">Seret video ke sini</div>
+        <div class="dz-sub">atau <b>klik untuk menelusuri</b></div>
+        <div class="dz-badges"><span class="dz-badge">MP4</span><span class="dz-badge">WebM</span><span class="dz-badge">MOV</span><span class="dz-badge">AVI</span></div>
+      </div>
+      <div class="file-preview" id="videoFilePreview">
+        <div class="fp-icon" style="background:var(--accent)">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4V8z"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>
+        </div>
+        <div class="fp-info"><div class="fp-name" id="videoFileName">—</div><div class="fp-size" id="videoFileSize">—</div></div>
+        <button class="fp-btn" onclick="changeFile('video')">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Ganti
+        </button>
+      </div>
+      <div class="note note-warn" style="margin-top:12px">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span>Kompresi video berjalan di browser (MediaRecorder + Canvas). Hasil terbaik untuk WebM. Untuk kompresi berat gunakan HandBrake.</span>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+        </div>
+        <div><div class="card-title">Pengaturan Video</div><div class="card-sub">Atur resolusi, bitrate, dan format output</div></div>
+      </div>
+      <div class="settings-grid">
+        <div class="field">
+          <label>Kualitas</label>
+          <div class="slider-wrap">
+            <span class="slider-val" id="videoQualVal">70%</span>
+            <input type="range" min="10" max="100" value="70" id="videoQuality" oninput="document.getElementById('videoQualVal').textContent=this.value+'%'"/>
+          </div>
+        </div>
+        <div class="field"><label>Bitrate (kbps)</label><input type="number" id="videoBitrate" value="1000" min="100" max="10000"/></div>
+        <div class="field">
+          <label>Max Resolusi</label>
+          <select id="videoResolution">
+            <option value="original">Original</option>
+            <option value="1080">1080p</option>
+            <option value="720" selected>720p</option>
+            <option value="480">480p</option>
+            <option value="360">360p</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Format Output</label>
+          <select id="videoFormat"><option value="video/webm">WebM (terbaik)</option><option value="video/mp4">MP4</option></select>
+        </div>
+      </div>
+      <div style="margin-top:18px">
+        <div class="action-row">
+          <button class="btn btn-primary" id="videoBtn" onclick="processVideos()" disabled>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Kompress Video
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="resetAll('video')">Reset</button>
+        </div>
+        <div class="progress-box" id="videoProgress">
+          <div class="progress-header"><span class="progress-label" id="videoProgressLabel">Memproses...</span><span class="progress-pct" id="videoProgressPct">0%</span></div>
+          <div class="progress-track"><div class="progress-fill" id="videoProgressFill" style="width:0%"></div></div>
+        </div>
+        <div class="err-msg" id="videoError"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span></span></div>
+      </div>
+    </div>
+    <div class="results-wrap" id="videoResults"><div class="summary-card" id="videoSummary"></div><div class="result-list" id="videoResultsList"></div></div>
+  </div>
+
+  <!-- PANEL: RESIZE -->
+  <div class="tab-panel" id="tab-resize">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+        </div>
+        <div><div class="card-title">Upload Foto untuk Resize</div><div class="card-sub">Ubah dimensi foto ke ukuran yang tepat</div></div>
+      </div>
+      <div class="dropzone" id="resizeDz" ondrop="handleDrop(event,'resize')" ondragover="doDragOver(event,'resizeDz')" ondragleave="doDragLeave('resizeDz')">
+        <input type="file" accept="image/*" onchange="handleFiles('resize',this.files)"/>
+        <div class="dz-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 3 21 3 21 9"/><polyline points="9 21 3 21 3 15"/><line x1="21" y1="3" x2="14" y2="10"/><line x1="3" y1="21" x2="10" y2="14"/></svg>
+        </div>
+        <div class="dz-title">Seret foto ke sini</div>
+        <div class="dz-sub">atau <b>klik untuk menelusuri</b></div>
+        <div class="dz-badges"><span class="dz-badge">JPG</span><span class="dz-badge">PNG</span><span class="dz-badge">WEBP</span><span class="dz-badge">BMP</span></div>
+      </div>
+      <div class="file-preview" id="resizeFilePreview">
+        <div class="fp-icon" style="background:var(--accent)">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        </div>
+        <div class="fp-info"><div class="fp-name" id="resizeFileName">—</div><div class="fp-size" id="resizeFileSize">—</div></div>
+        <button class="fp-btn" onclick="changeFile('resize')">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Ganti
+        </button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/></svg>
+        </div>
+        <div><div class="card-title">Pengaturan Dimensi</div><div class="card-sub">Pilih preset atau atur dimensi secara manual</div></div>
+      </div>
+      <div class="settings-grid">
+        <div class="field">
+          <label>Preset Ukuran</label>
+          <select id="resizePreset" onchange="applyPreset()">
+            <option value="">— Pilih Preset —</option>
+            <option value="1920,1080">Full HD 1920×1080</option>
+            <option value="1280,720">HD 1280×720</option>
+            <option value="800,600">Web 800×600</option>
+            <option value="400,400">Thumbnail 400×400</option>
+            <option value="1080,1080">Instagram Square 1080×1080</option>
+            <option value="1080,1920">Reels / Story 1080×1920</option>
+            <option value="1200,630">OG Image 1200×630</option>
+            <option value="828,1792">iPhone Wallpaper</option>
+          </select>
+        </div>
+        <div class="field"><label>Lebar (px)</label><input type="number" id="resizeW" value="1280" min="1"/></div>
+        <div class="field"><label>Tinggi (px)</label><input type="number" id="resizeH" value="720" min="1"/></div>
+        <div class="field">
+          <label>Mode Resize</label>
+          <select id="resizeMode">
+            <option value="fit">Fit — Jaga Rasio</option>
+            <option value="fill">Fill — Crop Center</option>
+            <option value="stretch">Stretch — Paksa Dimensi</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Kualitas Output</label>
+          <div class="slider-wrap">
+            <span class="slider-val" id="resizeQualVal">90%</span>
+            <input type="range" min="10" max="100" value="90" id="resizeQuality" oninput="document.getElementById('resizeQualVal').textContent=this.value+'%'"/>
+          </div>
+        </div>
+        <div class="field">
+          <label>Format Output</label>
+          <select id="resizeFormat">
+            <option value="original">Sama dengan input</option>
+            <option value="image/jpeg">JPEG</option>
+            <option value="image/png">PNG</option>
+            <option value="image/webp">WEBP</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-top:18px">
+        <div class="action-row">
+          <button class="btn btn-primary" id="resizeBtn" onclick="processResize()" disabled>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Resize Sekarang
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="resetAll('resize')">Reset</button>
+        </div>
+        <div class="progress-box" id="resizeProgress">
+          <div class="progress-header"><span class="progress-label" id="resizeProgressLabel">Memproses...</span><span class="progress-pct" id="resizeProgressPct">0%</span></div>
+          <div class="progress-track"><div class="progress-fill" id="resizeProgressFill" style="width:0%"></div></div>
+        </div>
+        <div class="err-msg" id="resizeError"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span></span></div>
+      </div>
+    </div>
+    <div class="results-wrap" id="resizeResults"><div class="summary-card" id="resizeSummary"></div><div class="result-list" id="resizeResultsList"></div></div>
+  </div>
+
+  <!-- PANEL: CONVERT -->
+  <div class="tab-panel" id="tab-convert">
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+        </div>
+        <div><div class="card-title">Upload File untuk Konversi</div><div class="card-sub">Konversi format gambar pilihan Anda</div></div>
+      </div>
+      <div class="dropzone" id="convertDz" ondrop="handleDrop(event,'convert')" ondragover="doDragOver(event,'convertDz')" ondragleave="doDragLeave('convertDz')">
+        <input type="file" accept="image/*" onchange="handleFiles('convert',this.files)"/>
+        <div class="dz-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+        </div>
+        <div class="dz-title">Seret file ke sini</div>
+        <div class="dz-sub">atau <b>klik untuk menelusuri</b></div>
+        <div class="dz-badges"><span class="dz-badge">JPG</span><span class="dz-badge">PNG</span><span class="dz-badge">WEBP</span><span class="dz-badge">BMP</span><span class="dz-badge">GIF</span></div>
+      </div>
+      <div class="file-preview" id="convertFilePreview">
+        <div class="fp-icon" style="background:var(--accent)">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+        </div>
+        <div class="fp-info"><div class="fp-name" id="convertFileName">—</div><div class="fp-size" id="convertFileSize">—</div></div>
+        <button class="fp-btn" onclick="changeFile('convert')">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Ganti
+        </button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg>
+        </div>
+        <div><div class="card-title">Pengaturan Konversi</div><div class="card-sub">Tentukan format tujuan dan kualitas hasil</div></div>
+      </div>
+      <div class="settings-grid">
+        <div class="field">
+          <label>Konversi ke</label>
+          <select id="convertTo">
+            <option value="image/jpeg">JPEG (.jpg)</option>
+            <option value="image/png">PNG (.png)</option>
+            <option value="image/webp" selected>WebP (.webp)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Kualitas Output</label>
+          <div class="slider-wrap">
+            <span class="slider-val" id="convertQualVal">85%</span>
+            <input type="range" min="10" max="100" value="85" id="convertQuality" oninput="document.getElementById('convertQualVal').textContent=this.value+'%'"/>
+          </div>
+        </div>
+        <div class="field">
+          <label>Background (PNG→JPG)</label>
+          <select id="convertBg"><option value="#ffffff">Putih</option><option value="#000000">Hitam</option><option value="#f3f4f6">Abu-abu</option></select>
+        </div>
+        <div class="field">
+          <label>Max Lebar (px, opsional)</label>
+          <input type="number" id="convertMaxW" placeholder="Kosong = original"/>
+        </div>
+      </div>
+      <div style="margin-top:18px">
+        <div class="action-row">
+          <button class="btn btn-primary" id="convertBtn" onclick="processConvert()" disabled>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Convert Sekarang
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="resetAll('convert')">Reset</button>
+        </div>
+        <div class="progress-box" id="convertProgress">
+          <div class="progress-header"><span class="progress-label" id="convertProgressLabel">Mengkonversi...</span><span class="progress-pct" id="convertProgressPct">0%</span></div>
+          <div class="progress-track"><div class="progress-fill" id="convertProgressFill" style="width:0%"></div></div>
+        </div>
+        <div class="err-msg" id="convertError"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span></span></div>
+      </div>
+    </div>
+    <div class="results-wrap" id="convertResults"><div class="summary-card" id="convertSummary"></div><div class="result-list" id="convertResultsList"></div></div>
+  </div>
+
+  <!-- PANEL: WA STATUS -->
+  <div class="tab-panel" id="tab-wastatus">
+    <div class="wa-info-banner">
+      <div class="wa-banner-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </div>
+      <div>
+        <div class="wa-banner-title">Optimasi Khusus WhatsApp Status</div>
+        <div class="wa-banner-desc">File diproses dengan parameter presisi agar WA <b>tidak kompres ulang</b> — resolusi terjaga jernih hingga 1080p.</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon" style="background:#e8fdf2;color:#25d366">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+        </div>
+        <div><div class="card-title">Jenis Media</div><div class="card-sub">Pilih foto atau video untuk status WA</div></div>
+      </div>
+      <div class="wa-mode-grid">
+        <button class="wa-mode-btn active" id="waModePhoto" onclick="setWaMode('photo')">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          <span class="wa-mode-label">Foto</span>
+          <span class="wa-mode-desc">JPEG · 95% · Resolusi original</span>
+        </button>
+        <button class="wa-mode-btn" id="waModeVideo" onclick="setWaMode('video')">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4V8z"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>
+          <span class="wa-mode-label">Video</span>
+          <span class="wa-mode-desc">WebM · 3700kbps · 1080p · ≤30s</span>
+        </button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon" style="background:#e8fdf2;color:#25d366">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+        </div>
+        <div><div class="card-title" id="waUploadTitle">Upload Foto untuk Status WA</div><div class="card-sub">1 file — proses lokal, privasi terjaga</div></div>
+      </div>
+      <div class="dropzone" id="wastatusDz" ondrop="handleDrop(event,'wastatus')" ondragover="doDragOver(event,'wastatusDz')" ondragleave="doDragLeave('wastatusDz')">
+        <input type="file" id="wastatusInput" accept="image/*" onchange="handleFiles('wastatus',this.files)"/>
+        <div class="dz-icon" style="background:#e8fdf2;color:#25d366">
+          <svg id="waDzIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        </div>
+        <div class="dz-title" id="waDzTitle">Seret foto ke sini</div>
+        <div class="dz-sub">atau <b>klik untuk menelusuri</b></div>
+        <div class="dz-badges" id="wastatusBadges"><span class="dz-badge">JPG</span><span class="dz-badge">PNG</span><span class="dz-badge">WEBP</span><span class="dz-badge">BMP</span></div>
+      </div>
+      <div class="file-preview" id="wastatusFilePreview">
+        <div class="fp-icon" id="waFpIcon" style="background:#25d366">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        </div>
+        <div class="fp-info"><div class="fp-name" id="wastatusFileName">—</div><div class="fp-size" id="wastatusFileSize">—</div></div>
+        <button class="fp-btn" onclick="changeFile('wastatus')">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Ganti
+        </button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="card-icon" style="background:#e8fdf2;color:#25d366">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <div><div class="card-title">Parameter yang Digunakan</div><div class="card-sub">Dikalibrasi agar WA tidak kompres ulang</div></div>
+      </div>
+      <div class="wa-params" id="waParams"></div>
+      <div style="margin-top:18px">
+        <div class="action-row">
+          <button class="btn btn-wa" id="wastatusBtn" onclick="processWaStatus()" disabled>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Optimalkan untuk WA
+          </button>
+          <button class="btn btn-ghost btn-sm" onclick="resetAll('wastatus')">Reset</button>
+        </div>
+        <div class="progress-box" id="wastatusProgress">
+          <div class="progress-header"><span class="progress-label" id="wastatusProgressLabel">Memproses...</span><span class="progress-pct" id="wastatusProgressPct">0%</span></div>
+          <div class="progress-track"><div class="progress-fill" id="wastatusProgressFill" style="width:0%;background:linear-gradient(90deg,#25d366,#20b558)"></div></div>
+        </div>
+        <div class="err-msg" id="wastatusError"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><span></span></div>
+      </div>
+    </div>
+    <div class="results-wrap" id="wastatusResults"><div class="summary-card" id="wastatusSummary"></div><div class="result-list" id="wastatusResultsList"></div></div>
+  </div>
+
+</main>
+
+<!-- FEATURES -->
+<section class="features" id="features">
+  <div class="section-eyebrow">Mengapa CompressX?</div>
+  <div class="section-title">Fitur Lengkap untuk Profesional</div>
+  <div class="feat-grid">
+    <div class="feat-card">
+      <div class="feat-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <div class="feat-name">100% Privat</div>
+      <div class="feat-desc">File tidak pernah meninggalkan perangkat. Semua proses terjadi secara lokal di browser.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+      </div>
+      <div class="feat-name">Cepat & Efisien</div>
+      <div class="feat-desc">Memanfaatkan Canvas API dan Web Workers untuk performa maksimal.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </div>
+      <div class="feat-name">WA Status Jernih</div>
+      <div class="feat-desc">Parameter khusus agar WhatsApp tidak kompres ulang — foto & video tetap 1080p.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      </div>
+      <div class="feat-name">Target Ukuran</div>
+      <div class="feat-desc">Tentukan ukuran file output yang diinginkan, kualitas menyesuaikan otomatis.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+      </div>
+      <div class="feat-name">Statistik Detail</div>
+      <div class="feat-desc">Lihat persentase penghematan dan perbandingan ukuran sebelum vs sesudah.</div>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+      </div>
+      <div class="feat-name">Multi Format</div>
+      <div class="feat-desc">Konversi antara JPEG, PNG, WebP, BMP, GIF, dan format video populer.</div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-brand">
+    <div class="logo-icon" style="width:24px;height:24px;border-radius:6px">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+    </div>
+    CompressX
+  </div>
+  <div class="footer-note">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    File tidak pernah dikirim ke server · Gratis selamanya
+  </div>
+</footer>
+
+<script>
+'use strict';
+
+// ── STATE ──
+const state = { photo:[], video:[], resize:[], convert:[], wastatus:[] };
+const resultStore = {};
+
+// ── TAB ──
+function switchTab(name, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  btn.classList.add('active');
+}
+
+// ── DRAG & DROP ──
+function doDragOver(e, id) { e.preventDefault(); document.getElementById(id).classList.add('drag-over'); }
+function doDragLeave(id) { document.getElementById(id).classList.remove('drag-over'); }
+function handleDrop(e, type) {
+  e.preventDefault();
+  document.getElementById(type + 'Dz').classList.remove('drag-over');
+  handleFiles(type, e.dataTransfer.files);
+}
+
+// ── FILE HANDLER ──
+function handleFiles(type, files) {
+  const arr = Array.from(files).slice(0, 1);
+  state[type] = arr;
+  const dz = document.getElementById(type + 'Dz');
+  const preview = document.getElementById(type + 'FilePreview');
+  if (arr.length > 0) {
+    const f = arr[0];
+    dz.classList.add('file-selected');
+    preview.classList.add('show');
+    document.getElementById(type + 'FileName').textContent = f.name;
+    document.getElementById(type + 'FileSize').textContent = fmtSize(f.size);
+  } else {
+    dz.classList.remove('file-selected');
+    preview.classList.remove('show');
+  }
+  document.getElementById(type + 'Btn').disabled = arr.length === 0;
+  resetResults(type);
+}
+
+function changeFile(type) {
+  state[type] = [];
+  const dz = document.getElementById(type + 'Dz');
+  const inp = dz.querySelector('input');
+  if (inp) inp.value = '';
+  dz.classList.remove('file-selected');
+  document.getElementById(type + 'FilePreview').classList.remove('show');
+  document.getElementById(type + 'Btn').disabled = true;
+  resetResults(type);
+}
+
+function resetAll(type) { changeFile(type); }
+
+function resetResults(type) {
+  document.getElementById(type + 'Results').classList.remove('show');
+  document.getElementById(type + 'ResultsList').innerHTML = '';
+  document.getElementById(type + 'Progress').classList.remove('show');
+  setErr(type, '');
+}
+
+// ── HELPERS ──
+function fmtSize(b) {
+  if (b < 1024) return b + ' B';
+  if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
+  return (b/1048576).toFixed(2) + ' MB';
+}
+function mimeExt(m) {
+  return {'image/jpeg':'jpg','image/png':'png','image/webp':'webp','video/webm':'webm','video/mp4':'mp4'}[m] || m.split('/').pop();
+}
+function setProgress(type, pct, label) {
+  document.getElementById(type+'ProgressFill').style.width = pct+'%';
+  document.getElementById(type+'ProgressPct').textContent = pct+'%';
+  if (label) document.getElementById(type+'ProgressLabel').textContent = label;
+}
+function setErr(type, msg) {
+  const el = document.getElementById(type+'Error');
+  el.querySelector('span').textContent = msg;
+  el.classList.toggle('show', !!msg);
+}
+function thumb(file) {
+  return new Promise(r => { const rd = new FileReader(); rd.onload = e => r(e.target.result); rd.readAsDataURL(file); });
+}
+
+// ── BUILD ROW ──
+function buildRow(file, origSize, newSize, blobUrl, outMime, thumbSrc, idx, type) {
+  const saved = origSize > 0 ? Math.round((1-newSize/origSize)*100) : 0;
+  const pillClass = saved >= 10 ? 'saving-good' : 'saving-warn';
+  const pillText = saved > 0 ? `-${saved}%` : `+${Math.abs(saved)}%`;
+  const extStr = mimeExt(outMime || file.type);
+  const dlName = file.name.replace(/\.[^/.]+$/,'') + '_compressed.' + extStr;
+  const div = document.createElement('div');
+  div.className = 'result-item';
+  div.innerHTML = `
+    <div class="result-thumb">
+      ${thumbSrc ? `<img src="${thumbSrc}" loading="lazy"/>` : `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m22 8-6 4 6 4V8z"/><rect x="2" y="6" width="14" height="12" rx="2"/></svg>`}
+    </div>
+    <div class="result-info">
+      <div class="result-name">${file.name}</div>
+      <div class="result-meta">
+        <span class="meta-tag">${fmtSize(origSize)}</span>
+        <span class="meta-arrow">→</span>
+        <span class="meta-tag" style="color:var(--text)">${fmtSize(newSize)}</span>
+        <span class="saving-pill ${pillClass}">${pillText}</span>
+      </div>
+    </div>
+    <div class="result-actions">
+      <a class="btn-icon" href="${blobUrl}" download="${dlName}" title="Unduh">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      </a>
+      <button class="btn-icon wa" title="Share WA" onclick="shareWA('${encodeURIComponent(file.name)}','${fmtSize(origSize)}','${fmtSize(newSize)}','${pillText}')">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </button>
+    </div>`;
+  return div;
+}
+
+// ── WA SHARE ──
+function shareWA(encName, origStr, newStr, savedStr) {
+  const name = decodeURIComponent(encName);
+  const msg = `✅ *File berhasil dikompres via CompressX!*\n\n📁 File: ${name}\n📊 Sebelum: ${origStr}\n📉 Sesudah: ${newStr}\n💾 Hemat: ${savedStr}\n\n🔗 Coba gratis di: ${location.href}`;
+  window.open('https://wa.me/?text='+encodeURIComponent(msg), '_blank');
+}
+function shareWAAll(type, totalOrig, totalNew, totalSaved, count) {
+  const msg = `✅ *${count} file dikompres via CompressX!*\n\n📊 Total Sebelum: ${fmtSize(totalOrig)}\n📉 Total Sesudah: ${fmtSize(totalNew)}\n💾 Hemat: ${fmtSize(totalSaved)} (${Math.round(totalSaved/totalOrig*100)}%)\n\n🔗 ${location.href}`;
+  window.open('https://wa.me/?text='+encodeURIComponent(msg), '_blank');
+}
+
+// ── SUMMARY ──
+function showSummary(type, totalOrig, totalNew, blobs) {
+  const wrap = document.getElementById(type+'Results');
+  const bar = document.getElementById(type+'Summary');
+  const saved = totalOrig-totalNew;
+  const pct = totalOrig > 0 ? Math.round(saved/totalOrig*100) : 0;
+  wrap.classList.add('show');
+  resultStore[type] = blobs;
+  bar.innerHTML = `
+    <div class="summary-stats">
+      <div class="sum-item"><div class="s-label">Total Hemat</div><div class="s-val">${fmtSize(saved)} <small>(${pct}%)</small></div></div>
+      <div class="sum-item"><div class="s-label">Sebelum → Sesudah</div><div class="s-val" style="font-size:.85rem">${fmtSize(totalOrig)} → ${fmtSize(totalNew)}</div></div>
+      <div class="sum-item"><div class="s-label">File</div><div class="s-val">${blobs.length}</div></div>
+    </div>
+    <div class="summary-actions">
+      <button class="btn btn-wa btn-sm" onclick="shareWAAll('${type}',${totalOrig},${totalNew},${saved},${blobs.length})">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Share WA
+      </button>
+      ${blobs.length > 1 ? `<button class="btn btn-dl btn-sm" onclick="downloadAll('${type}')">Unduh Semua</button>` : ''}
+    </div>`;
+}
+
+async function downloadAll(type) {
+  for (const r of (resultStore[type]||[])) {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(r.blob);
+    a.download = r.name;
+    a.click();
+    await new Promise(res => setTimeout(res, 200));
+  }
+}
+
+// ═══════════════════════
+//   KOMPRESS FOTO
+// ═══════════════════════
+async function processPhotos() {
+  const files = state.photo; if (!files.length) return;
+  const btn = document.getElementById('photoBtn');
+  btn.disabled = true;
+  document.getElementById('photoProgress').classList.add('show');
+  setProgress('photo', 0, 'Memulai kompresi...');
+  resetResults('photo');
+
+  const quality = parseInt(document.getElementById('photoQuality').value) / 100;
+  const maxSizeKB = parseInt(document.getElementById('photoMaxSize').value);
+  const maxWidth = parseInt(document.getElementById('photoMaxWidth').value);
+  const fmtVal = document.getElementById('photoFormat').value;
+  const outMime = fmtVal === 'original' ? null : fmtVal;
+
+  const list = document.getElementById('photoResultsList');
+  let totalOrig=0, totalNew=0;
+  const blobs = [];
+
+  for (let i=0; i<files.length; i++) {
+    const file = files[i];
+    setProgress('photo', Math.round((i/files.length)*88), `Memproses: ${file.name}`);
+    try {
+      const compressed = await imageCompression(file, {
+        maxSizeMB: maxSizeKB/1024,
+        maxWidthOrHeight: maxWidth,
+        useWebWorker: true,
+        fileType: outMime,
+        initialQuality: quality,
+      });
+      const blobUrl = URL.createObjectURL(compressed);
+      const thumbSrc = await thumb(compressed);
+      totalOrig += file.size; totalNew += compressed.size;
+      list.appendChild(buildRow(file, file.size, compressed.size, blobUrl, outMime||file.type, thumbSrc, i, 'photo'));
+      blobs.push({ blob: compressed, name: file.name });
+    } catch(err) { setErr('photo', `Gagal: ${file.name} — ${err.message}`); }
+  }
+  setProgress('photo', 100, 'Selesai!');
+  showSummary('photo', totalOrig, totalNew, blobs);
+  btn.disabled = false;
+}
+
+// ═══════════════════════
+//   KOMPRESS VIDEO
+// ═══════════════════════
+async function processVideos() {
+  const files = state.video; if (!files.length) return;
+  const btn = document.getElementById('videoBtn');
+  btn.disabled = true;
+  document.getElementById('videoProgress').classList.add('show');
+  setProgress('video', 0, 'Memulai...');
+  resetResults('video');
+
+  const list = document.getElementById('videoResultsList');
+  let totalOrig=0, totalNew=0;
+  const blobs = [];
+
+  for (let i=0; i<files.length; i++) {
+    const file = files[i];
+    setProgress('video', Math.round((i/files.length)*88), `Memproses ${i+1}/${files.length}: ${file.name}`);
+    try {
+      const result = await compressVideoClient(file, 'video');
+      const blobUrl = URL.createObjectURL(result);
+      totalOrig += file.size; totalNew += result.size;
+      list.appendChild(buildRow(file, file.size, result.size, blobUrl, result.type, null, i, 'video'));
+      blobs.push({ blob: result, name: file.name });
+    } catch(err) { setErr('video', `Gagal: ${file.name} — ${err.message}`); }
+  }
+  setProgress('video', 100, 'Selesai!');
+  showSummary('video', totalOrig, totalNew, blobs);
+  btn.disabled = false;
+}
+
+async function compressVideoClient(file, progressType, customBitrate, maxH) {
+  return new Promise((resolve, reject) => {
+    const video = document.createElement('video');
+    video.src = URL.createObjectURL(file);
+    video.muted = true;
+    video.onloadedmetadata = () => {
+      const bitrateKbps = (customBitrate || parseInt(document.getElementById('videoBitrate').value)) * 1000;
+      const maxRes = maxH || document.getElementById('videoResolution').value;
+      let w = video.videoWidth, h = video.videoHeight;
+      if (maxRes !== 'original') {
+        const mH = parseInt(maxRes);
+        if (h > mH) { w = Math.round(w*mH/h); h = mH; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext('2d');
+      const mime = MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm';
+      const stream = canvas.captureStream(30);
+      const recorder = new MediaRecorder(stream, { mimeType: mime, videoBitsPerSecond: bitrateKbps });
+      const chunks = [];
+      recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+      recorder.onstop = () => resolve(new Blob(chunks, { type: mime }));
+      video.play(); recorder.start();
+      const draw = () => {
+        if (video.ended || video.paused) { recorder.stop(); return; }
+        ctx.drawImage(video, 0, 0, w, h);
+        requestAnimationFrame(draw);
+      };
+      requestAnimationFrame(draw);
+      video.onended = () => setTimeout(() => { if (recorder.state !== 'inactive') recorder.stop(); }, 300);
+      video.onerror = reject;
+    };
+    video.onerror = reject;
+  });
+}
+
+// ═══════════════════════
+//   RESIZE
+// ═══════════════════════
+function applyPreset() {
+  const v = document.getElementById('resizePreset').value;
+  if (!v) return;
+  const [w,h] = v.split(',');
+  document.getElementById('resizeW').value = w;
+  document.getElementById('resizeH').value = h;
+}
+
+async function processResize() {
+  const files = state.resize; if (!files.length) return;
+  const btn = document.getElementById('resizeBtn');
+  btn.disabled = true;
+  document.getElementById('resizeProgress').classList.add('show');
+  setProgress('resize', 0, 'Memulai resize...');
+  resetResults('resize');
+
+  const tw = parseInt(document.getElementById('resizeW').value);
+  const th = parseInt(document.getElementById('resizeH').value);
+  const mode = document.getElementById('resizeMode').value;
+  const qual = parseInt(document.getElementById('resizeQuality').value)/100;
+  const fmt = document.getElementById('resizeFormat').value;
+
+  const list = document.getElementById('resizeResultsList');
+  let totalOrig=0, totalNew=0;
+  const blobs = [];
+
+  for (let i=0; i<files.length; i++) {
+    const file = files[i];
+    setProgress('resize', Math.round((i/files.length)*88), `Resize: ${file.name}`);
+    try {
+      const {blob, dataUrl} = await resizeImage(file, tw, th, mode, qual, fmt);
+      const blobUrl = URL.createObjectURL(blob);
+      totalOrig += file.size; totalNew += blob.size;
+      list.appendChild(buildRow(file, file.size, blob.size, blobUrl, blob.type, dataUrl, i, 'resize'));
+      blobs.push({ blob, name: file.name });
+    } catch(err) { setErr('resize', `Gagal: ${file.name} — ${err.message}`); }
+  }
+  setProgress('resize', 100, 'Selesai!');
+  showSummary('resize', totalOrig, totalNew, blobs);
+  btn.disabled = false;
+}
+
+async function resizeImage(file, tw, th, mode, quality, fmtOpt) {
+  return new Promise((res, rej) => {
+    const img = new Image();
+    img.onload = () => {
+      const iw=img.naturalWidth, ih=img.naturalHeight;
+      const canvas = document.createElement('canvas');
+      let sx=0,sy=0,sw=iw,sh=ih,cw=tw,ch=th;
+      if (mode==='fit') { const r=Math.min(tw/iw,th/ih); cw=Math.round(iw*r); ch=Math.round(ih*r); }
+      else if (mode==='fill') { const r=Math.max(tw/iw,th/ih); sw=tw/r; sh=th/r; sx=(iw-sw)/2; sy=(ih-sh)/2; cw=tw; ch=th; }
+      canvas.width=cw; canvas.height=ch;
+      const ctx=canvas.getContext('2d');
+      ctx.drawImage(img,sx,sy,sw,sh,0,0,cw,ch);
+      const outMime = fmtOpt==='original' ? (file.type||'image/jpeg') : fmtOpt;
+      const dataUrl = canvas.toDataURL(outMime, quality);
+      canvas.toBlob(blob => res({blob,dataUrl}), outMime, quality);
+    };
+    img.onerror = rej;
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+// ═══════════════════════
+//   CONVERT
+// ═══════════════════════
+async function processConvert() {
+  const files = state.convert; if (!files.length) return;
+  const btn = document.getElementById('convertBtn');
+  btn.disabled = true;
+  document.getElementById('convertProgress').classList.add('show');
+  setProgress('convert', 0, 'Mengkonversi...');
+  resetResults('convert');
+
+  const toMime = document.getElementById('convertTo').value;
+  const qual = parseInt(document.getElementById('convertQuality').value)/100;
+  const bg = document.getElementById('convertBg').value;
+  const maxW = parseInt(document.getElementById('convertMaxW').value)||0;
+
+  const list = document.getElementById('convertResultsList');
+  let totalOrig=0, totalNew=0;
+  const blobs = [];
+
+  for (let i=0; i<files.length; i++) {
+    const file = files[i];
+    setProgress('convert', Math.round((i/files.length)*88), `Convert: ${file.name}`);
+    try {
+      const {blob, dataUrl} = await convertImage(file, toMime, qual, bg, maxW);
+      const blobUrl = URL.createObjectURL(blob);
+      totalOrig += file.size; totalNew += blob.size;
+      list.appendChild(buildRow(file, file.size, blob.size, blobUrl, toMime, dataUrl, i, 'convert'));
+      blobs.push({ blob, name: file.name });
+    } catch(err) { setErr('convert', `Gagal: ${file.name} — ${err.message}`); }
+  }
+  setProgress('convert', 100, 'Selesai!');
+  showSummary('convert', totalOrig, totalNew, blobs);
+  btn.disabled = false;
+}
+
+async function convertImage(file, toMime, quality, bg, maxW) {
+  return new Promise((res, rej) => {
+    const img = new Image();
+    img.onload = () => {
+      let w=img.naturalWidth, h=img.naturalHeight;
+      if (maxW>0 && w>maxW) { h=Math.round(h*maxW/w); w=maxW; }
+      const canvas = document.createElement('canvas');
+      canvas.width=w; canvas.height=h;
+      const ctx = canvas.getContext('2d');
+      if (toMime==='image/jpeg') { ctx.fillStyle=bg; ctx.fillRect(0,0,w,h); }
+      ctx.drawImage(img,0,0,w,h);
+      const dataUrl = canvas.toDataURL(toMime, quality);
+      canvas.toBlob(blob => res({blob,dataUrl}), toMime, quality);
+    };
+    img.onerror = rej;
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+// ═══════════════════════
+//   WA STATUS
+// ═══════════════════════
+let waMode = 'photo';
+
+const waParamsData = {
+  photo: [
+    {label:'Format', val:'JPEG'},
+    {label:'Kualitas', val:'95%'},
+    {label:'Resolusi', val:'Original'},
+    {label:'Target', val:'< 5 MB'},
+  ],
+  video: [
+    {label:'Format', val:'MP4 / H.264'},
+    {label:'Audio', val:'AAC 128kbps'},
+    {label:'Resolusi', val:'Maks. 1080p'},
+    {label:'Durasi', val:'≤ 30 detik'},
+  ]
+};
+
+function renderWaParams() {
+  document.getElementById('waParams').innerHTML = waParamsData[waMode].map(p =>
+    `<div class="wa-param-item"><div class="wa-param-label">${p.label}</div><div class="wa-param-val">${p.val}</div></div>`
+  ).join('');
+}
+
+function setWaMode(mode) {
+  waMode = mode;
+  document.getElementById('waModePhoto').classList.toggle('active', mode==='photo');
+  document.getElementById('waModeVideo').classList.toggle('active', mode==='video');
+  const input = document.getElementById('wastatusInput');
+  const title = document.getElementById('waUploadTitle');
+  const badges = document.getElementById('wastatusBadges');
+  if (mode==='photo') {
+    input.accept='image/*';
+    title.textContent='Upload Foto untuk Status WA';
+    badges.innerHTML='<span class="dz-badge">JPG</span><span class="dz-badge">PNG</span><span class="dz-badge">WEBP</span><span class="dz-badge">BMP</span>';
+  } else {
+    input.accept='video/*';
+    title.textContent='Upload Video untuk Status WA';
+    badges.innerHTML='<span class="dz-badge">MP4</span><span class="dz-badge">MOV</span><span class="dz-badge">AVI</span><span class="dz-badge">WebM</span>';
+  }
+  changeFile('wastatus');
+  renderWaParams();
+}
+
+async function processWaStatus() {
+  const files = state.wastatus; if (!files.length) return;
+  const btn = document.getElementById('wastatusBtn');
+  btn.disabled = true;
+  document.getElementById('wastatusProgress').classList.add('show');
+  setProgress('wastatus', 10, 'Memproses...');
+  resetResults('wastatus');
+
+  const file = files[0];
+  const list = document.getElementById('wastatusResultsList');
+
+  try {
+    if (waMode==='photo') {
+      setProgress('wastatus', 30, 'Mengoptimasi foto...');
+      const {blob, dataUrl} = await waOptimizePhoto(file);
+      setProgress('wastatus', 100, 'Selesai!');
+      const blobUrl = URL.createObjectURL(blob);
+      list.appendChild(buildRow(file, file.size, blob.size, blobUrl, 'image/jpeg', dataUrl, 0, 'wastatus'));
+      showSummary('wastatus', file.size, blob.size, [{blob, name: file.name.replace(/\.[^/.]+$/,'')+'_wastatus.jpg'}]);
+    } else {
+      const blob = await waOptimizeVideo(file);
+      setProgress('wastatus', 100, 'Selesai!');
+      const blobUrl = URL.createObjectURL(blob);
+      list.appendChild(buildRow(file, file.size, blob.size, blobUrl, blob.type, null, 0, 'wastatus'));
+      showSummary('wastatus', file.size, blob.size, [{blob, name: file.name.replace(/\.[^/.]+$/,'')+'_wastatus.mp4'}]);
+    }
+  } catch(err) {
+    setErr('wastatus', `Gagal: ${err.message}`);
+  }
+  btn.disabled = false;
+}
+
+async function waOptimizePhoto(file) {
+  return new Promise((res, rej) => {
+    const img = new Image();
+    img.onload = () => {
+      const w=img.naturalWidth, h=img.naturalHeight;
+      const canvas = document.createElement('canvas');
+      canvas.width=w; canvas.height=h;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,w,h);
+      ctx.drawImage(img,0,0,w,h);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.95);
+      canvas.toBlob(blob => res({blob,dataUrl}), 'image/jpeg', 0.95);
+    };
+    img.onerror = rej;
+    img.src = URL.createObjectURL(file);
+  });
+}
+
+async function waOptimizeVideo(file) {
+  // Cek dukungan WebCodecs API (Chrome 94+, Edge 94+, Android Chrome)
+  if (typeof VideoEncoder === 'undefined') {
+    throw new Error('Browser kamu tidak mendukung encoding MP4. Gunakan Chrome atau Edge versi terbaru.');
+  }
+
+  const { Muxer, ArrayBufferTarget } = Mp4Muxer;
+
+  return new Promise((resolve, reject) => {
+    const video = document.createElement('video');
+    video.src = URL.createObjectURL(file);
+    video.muted = true; // mute untuk mencegah audio keluar speaker saat proses
+
+    video.onloadedmetadata = async () => {
+      try {
+        let w = video.videoWidth, h = video.videoHeight;
+        // Resize maks 1080p, harus kelipatan 2
+        if (h > 1080) { w = Math.round(w * 1080 / h); h = 1080; }
+        if (w > 1920) { h = Math.round(h * 1920 / w); w = 1920; }
+        w = Math.floor(w / 2) * 2;
+        h = Math.floor(h / 2) * 2;
+
+        const duration = Math.min(video.duration, 30);
+        const fps = 30;
+        const totalFrames = Math.ceil(duration * fps);
+
+        // Setup MP4 muxer
+        const target = new ArrayBufferTarget();
+        const muxer = new Muxer({
+          target,
+          video: { codec: 'avc', width: w, height: h },
+          audio: { codec: 'aac', sampleRate: 44100, numberOfChannels: 2 },
+          fastStart: 'in-memory',
+        });
+
+        // ── Video Encoder (H.264) ──
+        let videoEncDone = false;
+        const videoEncoder = new VideoEncoder({
+          output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
+          error: reject,
+        });
+        videoEncoder.configure({
+          codec: 'avc1.42001f', // H.264 Baseline profile — kompatibilitas maksimal
+          width: w, height: h,
+          bitrate: 3_700_000,
+          framerate: fps,
+        });
+
+        // ── Audio Encoder (AAC) ──
+        let audioEncDone = false;
+        const audioEncoder = new AudioEncoder({
+          output: (chunk, meta) => muxer.addAudioChunk(chunk, meta),
+          error: reject,
+        });
+        audioEncoder.configure({
+          codec: 'mp4a.40.2', // AAC-LC
+          sampleRate: 44100,
+          numberOfChannels: 2,
+          bitrate: 128_000,
+        });
+
+        // ── Ambil audio via Web Audio API ──
+        const audioCtx = new AudioContext({ sampleRate: 44100 });
+        const source = audioCtx.createMediaElementSource(video);
+        const processor = audioCtx.createScriptProcessor(4096, 2, 2);
+        source.connect(processor);
+        processor.connect(audioCtx.destination); // perlu connect tapi volume=0 agar tidak bunyi
+        audioCtx.destination.channelCount = 2;
+
+        // Silence output agar tidak bunyi di speaker
+        const gainNode = audioCtx.createGain();
+        gainNode.gain.value = 0;
+        source.connect(gainNode);
+        gainNode.connect(audioCtx.destination);
+        processor.disconnect(audioCtx.destination); // putus dari speaker
+
+        let audioTimestamp = 0;
+        processor.onaudioprocess = (e) => {
+          if (audioEncDone) return;
+          const left = e.inputBuffer.getChannelData(0);
+          const right = e.inputBuffer.getChannelData(1);
+          const interleaved = new Float32Array(left.length * 2);
+          for (let i = 0; i < left.length; i++) {
+            interleaved[i * 2] = left[i];
+            interleaved[i * 2 + 1] = right[i];
+          }
+          const frame = new AudioData({
+            format: 'f32',
+            sampleRate: 44100,
+            numberOfFrames: left.length,
+            numberOfChannels: 2,
+            timestamp: audioTimestamp,
+            data: interleaved,
+          });
+          audioEncoder.encode(frame);
+          frame.close();
+          audioTimestamp += (left.length / 44100) * 1_000_000;
+        };
+
+        // ── Render frame per frame via canvas ──
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        let frameIndex = 0;
+
+        const encodeNextFrame = () => {
+          if (frameIndex >= totalFrames) {
+            finalize(); return;
+          }
+          const timestamp = (frameIndex / fps) * 1_000_000; // microseconds
+          video.currentTime = frameIndex / fps;
+          video.onseeked = () => {
+            ctx.drawImage(video, 0, 0, w, h);
+            const frame = new VideoFrame(canvas, { timestamp, duration: 1_000_000 / fps });
+            videoEncoder.encode(frame, { keyFrame: frameIndex % (fps * 2) === 0 });
+            frame.close();
+            frameIndex++;
+            const pct = Math.min(94, Math.round((frameIndex / totalFrames) * 84) + 10);
+            setProgress('wastatus', pct, `Encoding frame ${frameIndex}/${totalFrames}...`);
+            encodeNextFrame();
+          };
+        };
+
+        const finalize = async () => {
+          audioEncDone = true;
+          processor.disconnect();
+          source.disconnect();
+          audioCtx.close();
+
+          await videoEncoder.flush();
+          videoEncoder.close();
+          await audioEncoder.flush();
+          audioEncoder.close();
+          muxer.finalize();
+
+          const { buffer } = target;
+          resolve(new Blob([buffer], { type: 'video/mp4' }));
+        };
+
+        video.play().then(() => {
+          video.pause(); // pause langsung, kita akan seek manual
+          encodeNextFrame();
+        }).catch(reject);
+
+      } catch(err) { reject(err); }
+    };
+    video.onerror = reject;
+  });
+}
+
+// ── INIT ──
+renderWaParams();
+</script>
+</body>
+</html>
