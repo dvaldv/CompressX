@@ -6,7 +6,6 @@
 <title>CompressX — Professional Media Optimizer</title>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/browser-image-compression/2.0.2/browser-image-compression.min.js"></script>
-<script src="https://unpkg.com/mp4-muxer@5.1.3/build/mp4-muxer.min.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 
@@ -1283,8 +1282,9 @@ async function processWaStatus() {
       const blob = await waOptimizeVideo(file);
       setProgress('wastatus', 100, 'Selesai!');
       const blobUrl = URL.createObjectURL(blob);
+      const ext = blob.type === 'video/mp4' ? 'mp4' : 'webm';
       list.appendChild(buildRow(file, file.size, blob.size, blobUrl, blob.type, null, 0, 'wastatus'));
-      showSummary('wastatus', file.size, blob.size, [{blob, name: file.name.replace(/\.[^/.]+$/,'')+'_wastatus.mp4'}]);
+      showSummary('wastatus', file.size, blob.size, [{blob, name: file.name.replace(/\.[^/.]+$/,'')+'_wastatus.'+ext}]);
     }
   } catch(err) {
     setErr('wastatus', `Gagal: ${err.message}`);
@@ -1311,148 +1311,97 @@ async function waOptimizePhoto(file) {
 }
 
 async function waOptimizeVideo(file) {
-  // Cek dukungan WebCodecs API (Chrome 94+, Edge 94+, Android Chrome)
-  if (typeof VideoEncoder === 'undefined') {
-    throw new Error('Browser kamu tidak mendukung encoding MP4. Gunakan Chrome atau Edge versi terbaru.');
-  }
-
-  const { Muxer, ArrayBufferTarget } = Mp4Muxer;
-
   return new Promise((resolve, reject) => {
     const video = document.createElement('video');
     video.src = URL.createObjectURL(file);
-    video.muted = true; // mute untuk mencegah audio keluar speaker saat proses
+    video.muted = true;
 
     video.onloadedmetadata = async () => {
       try {
         let w = video.videoWidth, h = video.videoHeight;
-        // Resize maks 1080p, harus kelipatan 2
         if (h > 1080) { w = Math.round(w * 1080 / h); h = 1080; }
         if (w > 1920) { h = Math.round(h * 1920 / w); w = 1920; }
         w = Math.floor(w / 2) * 2;
         h = Math.floor(h / 2) * 2;
 
-        const duration = Math.min(video.duration, 30);
-        const fps = 30;
-        const totalFrames = Math.ceil(duration * fps);
+        const maxDuration = Math.min(video.duration, 30);
 
-        // Setup MP4 muxer
-        const target = new ArrayBufferTarget();
-        const muxer = new Muxer({
-          target,
-          video: { codec: 'avc', width: w, height: h },
-          audio: { codec: 'aac', sampleRate: 44100, numberOfChannels: 2 },
-          fastStart: 'in-memory',
-        });
-
-        // ── Video Encoder (H.264) ──
-        let videoEncDone = false;
-        const videoEncoder = new VideoEncoder({
-          output: (chunk, meta) => muxer.addVideoChunk(chunk, meta),
-          error: reject,
-        });
-        videoEncoder.configure({
-          codec: 'avc1.42001f', // H.264 Baseline profile — kompatibilitas maksimal
-          width: w, height: h,
-          bitrate: 3_700_000,
-          framerate: fps,
-        });
-
-        // ── Audio Encoder (AAC) ──
-        let audioEncDone = false;
-        const audioEncoder = new AudioEncoder({
-          output: (chunk, meta) => muxer.addAudioChunk(chunk, meta),
-          error: reject,
-        });
-        audioEncoder.configure({
-          codec: 'mp4a.40.2', // AAC-LC
-          sampleRate: 44100,
-          numberOfChannels: 2,
-          bitrate: 128_000,
-        });
-
-        // ── Ambil audio via Web Audio API ──
-        const audioCtx = new AudioContext({ sampleRate: 44100 });
-        const source = audioCtx.createMediaElementSource(video);
-        const processor = audioCtx.createScriptProcessor(4096, 2, 2);
-        source.connect(processor);
-        processor.connect(audioCtx.destination); // perlu connect tapi volume=0 agar tidak bunyi
-        audioCtx.destination.channelCount = 2;
-
-        // Silence output agar tidak bunyi di speaker
-        const gainNode = audioCtx.createGain();
-        gainNode.gain.value = 0;
-        source.connect(gainNode);
-        gainNode.connect(audioCtx.destination);
-        processor.disconnect(audioCtx.destination); // putus dari speaker
-
-        let audioTimestamp = 0;
-        processor.onaudioprocess = (e) => {
-          if (audioEncDone) return;
-          const left = e.inputBuffer.getChannelData(0);
-          const right = e.inputBuffer.getChannelData(1);
-          const interleaved = new Float32Array(left.length * 2);
-          for (let i = 0; i < left.length; i++) {
-            interleaved[i * 2] = left[i];
-            interleaved[i * 2 + 1] = right[i];
-          }
-          const frame = new AudioData({
-            format: 'f32',
-            sampleRate: 44100,
-            numberOfFrames: left.length,
-            numberOfChannels: 2,
-            timestamp: audioTimestamp,
-            data: interleaved,
-          });
-          audioEncoder.encode(frame);
-          frame.close();
-          audioTimestamp += (left.length / 44100) * 1_000_000;
-        };
-
-        // ── Render frame per frame via canvas ──
         const canvas = document.createElement('canvas');
         canvas.width = w; canvas.height = h;
         const ctx = canvas.getContext('2d');
-        let frameIndex = 0;
+        const videoStream = canvas.captureStream(30);
 
-        const encodeNextFrame = () => {
-          if (frameIndex >= totalFrames) {
-            finalize(); return;
+        // ── Ambil audio track tanpa bunyi di speaker ──
+        let combinedStream = videoStream;
+        try {
+          const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          const src = audioCtx.createMediaElementSource(video);
+          const dest = audioCtx.createMediaStreamDestination();
+          src.connect(dest); // hanya ke dest, tidak ke speaker
+          const audioTrack = dest.stream.getAudioTracks()[0];
+          if (audioTrack) {
+            combinedStream = new MediaStream([
+              ...videoStream.getVideoTracks(),
+              audioTrack
+            ]);
           }
-          const timestamp = (frameIndex / fps) * 1_000_000; // microseconds
-          video.currentTime = frameIndex / fps;
-          video.onseeked = () => {
-            ctx.drawImage(video, 0, 0, w, h);
-            const frame = new VideoFrame(canvas, { timestamp, duration: 1_000_000 / fps });
-            videoEncoder.encode(frame, { keyFrame: frameIndex % (fps * 2) === 0 });
-            frame.close();
-            frameIndex++;
-            const pct = Math.min(94, Math.round((frameIndex / totalFrames) * 84) + 10);
-            setProgress('wastatus', pct, `Encoding frame ${frameIndex}/${totalFrames}...`);
-            encodeNextFrame();
-          };
+        } catch(e) { console.warn('Audio capture error:', e); }
+
+        // ── Pilih mime: utamakan MP4, fallback WebM ──
+        // Chrome Android 130+ support video/mp4 di MediaRecorder
+        let mime = '';
+        const candidates = [
+          'video/mp4;codecs=avc1.42E01E,mp4a.40.2',
+          'video/mp4;codecs=avc1,mp4a.40.2',
+          'video/mp4',
+          'video/webm;codecs=vp8,opus',
+          'video/webm',
+        ];
+        for (const c of candidates) {
+          if (MediaRecorder.isTypeSupported(c)) { mime = c; break; }
+        }
+
+        if (!mime) {
+          return reject(new Error('Browser tidak mendukung encoding video. Coba Chrome terbaru.'));
+        }
+
+        const isMP4 = mime.startsWith('video/mp4');
+        const recorder = new MediaRecorder(combinedStream, {
+          mimeType: mime,
+          videoBitsPerSecond: 3_700_000,
+          audioBitsPerSecond: 128_000,
+        });
+
+        const chunks = [];
+        recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+        recorder.onstop = () => {
+          const outputMime = isMP4 ? 'video/mp4' : 'video/webm';
+          resolve(new Blob(chunks, { type: outputMime }));
         };
 
-        const finalize = async () => {
-          audioEncDone = true;
-          processor.disconnect();
-          source.disconnect();
-          audioCtx.close();
+        let stopped = false;
+        const stopRec = () => {
+          if (stopped) return; stopped = true;
+          video.pause();
+          setTimeout(() => { if (recorder.state !== 'inactive') recorder.stop(); }, 200);
+        };
 
-          await videoEncoder.flush();
-          videoEncoder.close();
-          await audioEncoder.flush();
-          audioEncoder.close();
-          muxer.finalize();
-
-          const { buffer } = target;
-          resolve(new Blob([buffer], { type: 'video/mp4' }));
+        const draw = () => {
+          if (stopped) return;
+          if (video.ended || video.currentTime >= maxDuration) { stopRec(); return; }
+          ctx.drawImage(video, 0, 0, w, h);
+          const pct = Math.min(94, Math.round((video.currentTime / maxDuration) * 84) + 10);
+          setProgress('wastatus', pct, `Encoding... ${video.currentTime.toFixed(1)}s / ${maxDuration.toFixed(1)}s`);
+          requestAnimationFrame(draw);
         };
 
         video.play().then(() => {
-          video.pause(); // pause langsung, kita akan seek manual
-          encodeNextFrame();
+          recorder.start(100);
+          requestAnimationFrame(draw);
         }).catch(reject);
+
+        video.onended = stopRec;
+        video.onerror = reject;
 
       } catch(err) { reject(err); }
     };
